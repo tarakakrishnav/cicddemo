@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:file="http://www.mulesoft.org/schema/mule/file" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns:db="http://www.mulesoft.org/schema/mule/db"
+	xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/file http://www.mulesoft.org/schema/mule/file/current/mule-file.xsd">
+	<http:listener-config name="HTTP_Listener_config" doc:name="HTTP Listener config" doc:id="24e732a6-8919-4eed-b741-54f5efa87cd7" >
+		<http:listener-connection host="0.0.0.0" port="8085" />
+	</http:listener-config>
+	<db:config name="Database_Config" doc:name="Database Config" doc:id="c2bd5938-4102-4a46-a1af-2ddb705754f7" >
+		<db:my-sql-connection host="localhost" port="3306" user="root" password="root" database="muletrainingdb" />
+	</db:config>
+	<file:config name="File_Config" doc:name="File Config" doc:id="8e6010a3-1013-4984-8520-aa46ddd63a36" >
+		<file:connection workingDir="C:\Users\tarakav\Desktop\assesment03" />
+	</file:config>
+	<flow name="database-assesment03Flow" doc:id="08c78da3-7ba3-4a69-aa1c-685f97c9df4c" >
+		<http:listener doc:name="Listener" doc:id="38bea628-60d9-425e-9aac-6542c38e227c" config-ref="HTTP_Listener_config" path="/db"/>
+		<db:select doc:name="Select" doc:id="10fc02f8-0578-439f-b130-f7689685d83a" config-ref="Database_Config">
+			<db:sql ><![CDATA[select * from product ]]></db:sql>
+			<db:input-parameters ><![CDATA[#[output application/java
+---
+payload]]]></db:input-parameters>
+		</db:select>
+		<ee:transform doc:name="Transform Message" doc:id="efd43d33-a6c2-4b9f-bb0a-62515b411bb1" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/csv
+---
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<file:write doc:name="Write" doc:id="8bd834d2-5c1b-4013-9934-258c1797039a" config-ref="File_Config" path="write/products.csv">
+			<file:content ><![CDATA[#[output application/csv
+---
+payload]]]></file:content>
+		</file:write>
+		<logger level="INFO" doc:name="Logger" doc:id="ebb64ad5-049a-41da-8d7f-741ead200984" message="#[payload]"/>
+	</flow>
+</mule>
